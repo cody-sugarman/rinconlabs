@@ -1,51 +1,98 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import streamlit as st
 from streamlit.logger import get_logger
+import numpy as np
+import pandas as pd
+import os
+
+import tempfile
+
+from utils import process_document_sample
 
 LOGGER = get_logger(__name__)
 
+def get_data(path):
+    # RinconLabs Model
+    result = process_document_sample(
+        project_id="125021716564",
+        location="us",
+        processor_id="f305627853b27ecf",
+        file_path=path,
+        mime_type="image/png",
+    )
+    document_data = []
+    for entity in result.entities:
+        value = entity.mention_text
+        if value == "\342\230\221" or value == "☑": value = 'TRUE' # if it's a checkbox, change to true
+        if value == '': value = 'FALSE'
+        document_data.append({
+            "Field":entity.type,
+            "Value":value
+        })
+    document_df = pd.DataFrame(document_data)
+    return document_df
 
 def run():
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="eighth-sensor-388122-3fd12de90c04.json"
+
+
     st.set_page_config(
-        page_title="Hello",
-        page_icon="👋",
+        page_title="RinconLabs Demo",
+        page_icon="🌊",
     )
 
-    st.write("# Welcome to Streamlit! 👋")
+    st.write("# Welcome to RinconLabs' K-1 Analyzer Demo! 👋")
 
-    st.sidebar.success("Select a demo above.")
+    # uploaded_file = st.file_uploader("Upload any K-1 cover page here:")
+    # if uploaded_file:
+    #     temp_dir = tempfile.mkdtemp()
+    #     path = os.path.join(temp_dir, uploaded_file.name)
+    #     with open(path, "wb") as f:
+    #         f.write(uploaded_file.getvalue())
 
-    st.markdown(
-        """
-        Streamlit is an open-source app framework built specifically for
-        Machine Learning and Data Science projects.
-        **👈 Select a demo from the sidebar** to see some examples
-        of what Streamlit can do!
-        ### Want to learn more?
-        - Check out [streamlit.io](https://streamlit.io)
-        - Jump into our [documentation](https://docs.streamlit.io)
-        - Ask a question in our [community
-          forums](https://discuss.streamlit.io)
-        ### See more complex demos
-        - Use a neural net to [analyze the Udacity Self-driving Car Image
-          Dataset](https://github.com/streamlit/demo-self-driving)
-        - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
-    """
-    )
+    #     # Creating a button in the Streamlit interface
+    #     if st.button("Extract Data", type="primary"):
+    #         document_df = get_data(path)
+    #         st.data_editor(
+    #             document_df,
+    #             hide_index=True,
+    #         )
 
+
+    uploaded_file = st.file_uploader("Upload any K-1 cover page here:")
+
+    # Check for file upload and save path
+    if uploaded_file:
+        temp_dir = tempfile.mkdtemp()
+        path = os.path.join(temp_dir, uploaded_file.name)
+        with open(path, "wb") as f:
+            f.write(uploaded_file.getvalue())
+    
+    # Button to extract data
+    if uploaded_file and st.button("Extract Data"):
+        st.session_state.document_df = get_data(path)  # Process the file and save to session state
+
+    # Display and allow editing of the dataframe if it's in the session state
+    if 'document_df' in st.session_state and not st.session_state.document_df.empty:
+        updated_df = st.data_editor(
+            st.session_state.document_df,
+            hide_index=True,
+        )
+        st.session_state.document_df = updated_df  # Update session state with changes
+
+        # Select tax software to integrate with
+        option = st.selectbox(
+            'Please select your tax software (for export formatting purposes)',
+            ('UltraTax CS', 'GoSystem Tax RS', 'CCH Axcess Tax', 'Lacerte')
+        )
+
+        # Convert DataFrame to CSV for download
+        csv = st.session_state.document_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="Download Data as CSV",
+            data=csv,
+            file_name='k1_data.csv',
+            mime='text/csv',
+        )
 
 if __name__ == "__main__":
     run()
