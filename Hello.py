@@ -67,22 +67,6 @@ def run():
 
     st.write("# Welcome to RinconLabs' K-1 Analyzer Demo! 👋")
 
-    # uploaded_file = st.file_uploader("Upload any K-1 cover page here:")
-    # if uploaded_file:
-    #     temp_dir = tempfile.mkdtemp()
-    #     path = os.path.join(temp_dir, uploaded_file.name)
-    #     with open(path, "wb") as f:
-    #         f.write(uploaded_file.getvalue())
-
-    #     # Creating a button in the Streamlit interface
-    #     if st.button("Extract Data", type="primary"):
-    #         document_df = get_data(path)
-    #         st.data_editor(
-    #             document_df,
-    #             hide_index=True,
-    #         )
-
-
     uploaded_file = st.file_uploader("Upload any K-1 cover page here:")
 
     # Check for file upload and save path
