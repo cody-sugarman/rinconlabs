@@ -85,6 +85,7 @@ def run():
         updated_df = st.data_editor(
             st.session_state.document_df,
             hide_index=True,
+            use_container_width=True
         )
         st.session_state.document_df = updated_df  # Update session state with changes
 
