@@ -10,6 +10,29 @@ from utils import process_document_sample
 
 LOGGER = get_logger(__name__)
 
+
+def preprocess_value(value, entity):
+    value = value.replace('.', '')
+    value = value.replace('$ ', '$')
+    value = value.replace('$-', '-$')
+    value = value.replace('$', '')
+
+    if entity.type == 'recourse_liabilities_ending':
+        value = value.replace(' ', '')
+        value = value.replace('.', '')
+
+    if entity.type == 'withdrawals_and_distributions':
+        value = value.replace('.', '')
+        if ')' in value:
+            value = value.replace(')', '')
+            value = value.replace('(', '')
+            value = '-' + value
+        if '1 ' in value:
+            value = value.replace('1 ', '')
+    if entity.type == 'other_deductions':
+        value = value.replace('W* ', '')
+    return value
+
 def get_data(path):
     # RinconLabs Model
     result = process_document_sample(
@@ -24,6 +47,8 @@ def get_data(path):
         value = entity.mention_text
         if value == "\342\230\221" or value == "☑": value = 'TRUE' # if it's a checkbox, change to true
         if value == '': value = 'FALSE'
+        value = preprocess_value(value, entity)
+
         document_data.append({
             "Field":entity.type,
             "Value":value
