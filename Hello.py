@@ -44,6 +44,15 @@ def get_data(path):
     )
     document_data = []
     for entity in result.entities:
+
+        # Handle group fields
+        if entity.type == 'partner_profit_loss_capital':
+            for property in entity.properties:
+                document_data.append({
+                    "Field":property.type,
+                    "Value":property.mention_text
+                })
+
         value = entity.mention_text
         if value == "\342\230\221" or value == "☑": value = 'TRUE' # if it's a checkbox, change to true
         if value == '': value = 'FALSE'
