@@ -3,72 +3,40 @@ from streamlit.logger import get_logger
 import numpy as np
 import pandas as pd
 import os
-
+import boto3
+from botocore.exceptions import NoCredentialsError
 import tempfile
+from openai import OpenAI
 
-from utils import process_document_sample
+
+from utils import pdf_to_pngs, get_textract_tables_and_forms, get_k1_cover_gpt_output, gpt_to_json, get_k1_supplement_gpt_output
 
 LOGGER = get_logger(__name__)
+openai_api_key = st.secrets["general"]["openai_api_key"]
+openai_organization = st.secrets["general"]["openai_organization"]
+openai_project = st.secrets["general"]["openai_project"]
 
+# Enter your credentials here
+aws_access_key_id = st.secrets["general"]["aws_access_key_id"]
+aws_secret_access_key = st.secrets["general"]["aws_secret_access_key"]
+region_name = 'us-east-1'
 
-def preprocess_value(value, entity):
-    value = value.replace('.', '')
-    value = value.replace('$ ', '$')
-    value = value.replace('$-', '-$')
-    value = value.replace('$', '')
+# Setting environment variables
+os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key_id
+os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
+os.environ['AWS_DEFAULT_REGION'] = region_name
 
-    if entity.type == 'recourse_liabilities_ending':
-        value = value.replace(' ', '')
-        value = value.replace('.', '')
-
-    if entity.type == 'withdrawals_and_distributions':
-        value = value.replace('.', '')
-        if ')' in value:
-            value = value.replace(')', '')
-            value = value.replace('(', '')
-            value = '-' + value
-        if '1 ' in value:
-            value = value.replace('1 ', '')
-    if entity.type == 'other_deductions':
-        value = value.replace('W* ', '')
-    return value
-
-def get_data(path):
-    # RinconLabs Model
-    result = process_document_sample(
-        project_id="125021716564",
-        location="us",
-        processor_id="f305627853b27ecf",
-        file_path=path,
-        mime_type="image/png",
-    )
-    document_data = []
-    for entity in result.entities:
-
-        # Handle group fields
-        if entity.type == 'partner_profit_loss_capital':
-            for property in entity.properties:
-                document_data.append({
-                    "Field":property.type,
-                    "Value":property.mention_text
-                })
-
-        value = entity.mention_text
-        if value == "\342\230\221" or value == "☑": value = 'TRUE' # if it's a checkbox, change to true
-        if value == '': value = 'FALSE'
-        value = preprocess_value(value, entity)
-
-        document_data.append({
-            "Field":entity.type,
-            "Value":value
-        })
-    document_df = pd.DataFrame(document_data)
-    return document_df
+def extract_leaf_nodes(data, parent_key=''):
+    items = []
+    for k, v in data.items():
+        new_key = k
+        if isinstance(v, dict):
+            items.extend(extract_leaf_nodes(v, new_key))
+        else:
+            items.append({'Field': new_key, 'Value': v})
+    return items
 
 def run():
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="eighth-sensor-388122-3fd12de90c04.json"
-
-
     st.set_page_config(
         page_title="RinconLabs Demo",
         page_icon="🌊",
@@ -78,25 +46,43 @@ def run():
 
     uploaded_file = st.file_uploader("Upload any K-1 cover page here:")
 
+    client = OpenAI(
+        organization=openai_organization,
+        project=openai_project,
+        api_key=openai_api_key
+    )
+
     # Check for file upload and save path
     if uploaded_file:
         temp_dir = tempfile.mkdtemp()
         path = os.path.join(temp_dir, uploaded_file.name)
         with open(path, "wb") as f:
             f.write(uploaded_file.getvalue())
-    
+        file_name, images = pdf_to_pngs(path)
+        
     # Button to extract data
     if uploaded_file and st.button("Extract Data"):
-        st.session_state.document_df = get_data(path)  # Process the file and save to session state
+        tables, forms = get_textract_tables_and_forms(file_name)
+        k1_cover_gpt_output = get_k1_cover_gpt_output(file_name+'1.png', tables, forms, client)
+        k1_cover_gpt_output_json = gpt_to_json(k1_cover_gpt_output)
+        k1_supplement_gpt_output = get_k1_supplement_gpt_output(file_name, images, client)
+        k1_supplement_gpt_output_json = gpt_to_json(k1_supplement_gpt_output)        
+        k1_cover_gpt_output_json['part_three']['11'].update(k1_supplement_gpt_output_json['11'])
+        k1_cover_gpt_output_json['part_three']['13'].update(k1_supplement_gpt_output_json['13'])
+
+        cover_leaf_nodes = extract_leaf_nodes(k1_cover_gpt_output_json)
+        cover_leaf_nodes_df = pd.DataFrame(cover_leaf_nodes)
+        st.session_state.cover_document_df = cover_leaf_nodes_df
+        
 
     # Display and allow editing of the dataframe if it's in the session state
-    if 'document_df' in st.session_state and not st.session_state.document_df.empty:
+    if 'cover_document_df' in st.session_state and not st.session_state.cover_document_df.empty:
         updated_df = st.data_editor(
-            st.session_state.document_df,
+            st.session_state.cover_document_df,
             hide_index=True,
             use_container_width=True
         )
-        st.session_state.document_df = updated_df  # Update session state with changes
+        st.session_state.cover_document_df = updated_df  # Update session state with changes
 
         # Select tax software to integrate with
         option = st.selectbox(
@@ -105,13 +91,14 @@ def run():
         )
 
         # Convert DataFrame to CSV for download
-        csv = st.session_state.document_df.to_csv(index=False).encode('utf-8')
+        csv = st.session_state.cover_document_df.to_csv(index=False).encode('utf-8')
         st.download_button(
             label="Download Data as CSV",
             data=csv,
             file_name='k1_data.csv',
             mime='text/csv',
         )
+
 
 if __name__ == "__main__":
     run()
