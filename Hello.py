@@ -62,14 +62,15 @@ def run():
         
     # Button to extract data
     if uploaded_file and st.button("Extract Data"):
-        tables, forms = get_textract_tables_and_forms(file_name)
+        tables, forms = get_textract_tables_and_forms(file_name, images)
         k1_cover_gpt_output = get_k1_cover_gpt_output(file_name+'1.png', tables, forms, client)
         k1_cover_gpt_output_json = gpt_to_json(k1_cover_gpt_output)
-        k1_supplement_gpt_output = get_k1_supplement_gpt_output(file_name, images, client)
+        k1_supplement_gpt_output = get_k1_supplement_gpt_output(file_name, images, client, tables, forms)
         k1_supplement_gpt_output_json = gpt_to_json(k1_supplement_gpt_output)        
         k1_cover_gpt_output_json['part_three']['11'].update(k1_supplement_gpt_output_json['11'])
         k1_cover_gpt_output_json['part_three']['13'].update(k1_supplement_gpt_output_json['13'])
 
+        st.json(k1_cover_gpt_output_json, expanded=True)
         cover_leaf_nodes = extract_leaf_nodes(k1_cover_gpt_output_json)
         cover_leaf_nodes_df = pd.DataFrame(cover_leaf_nodes)
         st.session_state.cover_document_df = cover_leaf_nodes_df
@@ -77,12 +78,12 @@ def run():
 
     # Display and allow editing of the dataframe if it's in the session state
     if 'cover_document_df' in st.session_state and not st.session_state.cover_document_df.empty:
-        updated_df = st.data_editor(
-            st.session_state.cover_document_df,
-            hide_index=True,
-            use_container_width=True
-        )
-        st.session_state.cover_document_df = updated_df  # Update session state with changes
+        # updated_df = st.data_editor(
+        #     st.session_state.cover_document_df,
+        #     hide_index=True,
+        #     use_container_width=True
+        # )
+        # st.session_state.cover_document_df = updated_df  # Update session state with changes
 
         # Select tax software to integrate with
         option = st.selectbox(

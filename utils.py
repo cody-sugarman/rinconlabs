@@ -67,30 +67,34 @@ def pdf_to_pngs(file_name):
 
     print("PDF pages converted to PNG images successfully.")
 
-def get_form_data(response):
-    # Extract key-value pairs
-    key_map = {}
-    value_map = {}
-    block_map = {}
+def get_form_data(responses):
+    all_forms_data = []
+    
+    for response in responses:
+        key_map = {}
+        value_map = {}
+        block_map = {}
 
-    for block in response['Blocks']:
-        block_id = block['Id']
-        block_map[block_id] = block
-        if block['BlockType'] == "KEY_VALUE_SET":
-            if 'KEY' in block['EntityTypes']:
-                key_map[block_id] = block
-            else:
-                value_map[block_id] = block
+        for block in response['Blocks']:
+            block_id = block['Id']
+            block_map[block_id] = block
+            if block['BlockType'] == "KEY_VALUE_SET":
+                if 'KEY' in block['EntityTypes']:
+                    key_map[block_id] = block
+                else:
+                    value_map[block_id] = block
 
-    # Get KeyValue relationship
-    forms = {}
-    for block_id, key_block in key_map.items():
-        value_block = find_value_block(key_block, value_map, block_map)
-        key_text = get_text(key_block, block_map)
-        value_text = get_text(value_block, block_map)
-        forms[key_text] = value_text
-
-    return forms
+        # Get KeyValue relationship
+        forms = {}
+        for block_id, key_block in key_map.items():
+            value_block = find_value_block(key_block, value_map, block_map)
+            key_text = get_text(key_block, block_map)
+            value_text = get_text(value_block, block_map)
+            forms[key_text] = value_text
+        
+        all_forms_data.append(forms)
+    
+    return all_forms_data
 
 def find_value_block(key_block, value_map, block_map):
     for relationship in key_block.get('Relationships', []):
@@ -114,73 +118,80 @@ def get_text(block, block_map):
                             text += 'X '
     return text.strip()
 
-def get_table_data(response):
-    # Dictionary to hold table data, where each key will hold a DataFrame
-    tables = {}
-    table_blocks = [block for block in response['Blocks'] if block['BlockType'] == 'TABLE']
+def get_table_data(responses):
+    all_tables_data = []
 
-    for index, table in enumerate(table_blocks):
-        rows = {}
-        for rel in table['Relationships']:
-            if rel['Type'] == 'CHILD':
-                for child_id in rel['Ids']:
-                    cell = next(block for block in response['Blocks'] if block['Id'] == child_id)
-                    if 'RowIndex' in cell and 'ColumnIndex' in cell:
-                        row_index = cell['RowIndex']
-                        col_index = cell['ColumnIndex']
-                        if row_index not in rows:
-                            rows[row_index] = {}
-                        # Extract and combine words within each cell
-                        cell_text = ''
-                        if 'Relationships' in cell:
-                            for cell_rel in cell['Relationships']:
-                                if cell_rel['Type'] == 'CHILD':
-                                    for word_id in cell_rel['Ids']:
-                                        word_info = next(word for word in response['Blocks'] if word['Id'] == word_id)
-                                        if 'Text' in word_info:
-                                            cell_text += word_info['Text'] + ' '
-                        rows[row_index][col_index] = cell_text.strip()
+    for response in responses:
+        tables = {}
+        table_blocks = [block for block in response['Blocks'] if block['BlockType'] == 'TABLE']
 
-        # Convert dictionary to DataFrame
-        if rows:
-            df = pd.DataFrame.from_dict(rows, orient='index')
-            df.sort_index(axis=0, inplace=True)
-            df.sort_index(axis=1, inplace=True)
-            tables[f'Table_{index}'] = df
+        for index, table in enumerate(table_blocks):
+            rows = {}
+            for rel in table['Relationships']:
+                if rel['Type'] == 'CHILD':
+                    for child_id in rel['Ids']:
+                        cell = next(block for block in response['Blocks'] if block['Id'] == child_id)
+                        if 'RowIndex' in cell and 'ColumnIndex' in cell:
+                            row_index = cell['RowIndex']
+                            col_index = cell['ColumnIndex']
+                            if row_index not in rows:
+                                rows[row_index] = {}
+                            # Extract and combine words within each cell
+                            cell_text = ''
+                            if 'Relationships' in cell:
+                                for cell_rel in cell['Relationships']:
+                                    if cell_rel['Type'] == 'CHILD':
+                                        for word_id in cell_rel['Ids']:
+                                            word_info = next(word for word in response['Blocks'] if word['Id'] == word_id)
+                                            if 'Text' in word_info:
+                                                cell_text += word_info['Text'] + ' '
+                            rows[row_index][col_index] = cell_text.strip()
 
-    return tables
+            # Convert dictionary to DataFrame
+            if rows:
+                df = pd.DataFrame.from_dict(rows, orient='index')
+                df.sort_index(axis=0, inplace=True)
+                df.sort_index(axis=1, inplace=True)
+                tables[f'Table_{index}'] = df
+
+        all_tables_data.append(tables)
+
+    return all_tables_data
+
+def analyze_document(image_key, s3_client, textract, bucket_name, object_name):
+    # Upload the PDF to S3
+    s3_client.upload_file(image_key, bucket_name, object_name)
+    response = textract.analyze_document(
+        Document={
+            'S3Object': {
+                'Bucket': bucket_name, 
+                'Name': object_name
+            }
+        },
+        FeatureTypes=['TABLES', 'FORMS', 'LAYOUT']
+    )
+    return response
 
 
-def get_textract_tables_and_forms(file_name):
-    file_name = file_name + '1.png'
+
+def get_textract_tables_and_forms(file_name, images):
     # Upload K1 cover to s3 bucket for Textract usage
     s3_client = boto3.client('s3', region_name='us-east-1')  # Ensure the region is correct
     bucket_name = 'rincon-labs-s3-bucket'  # Updated bucket name
     object_name = file_name  # The name under which the PDF will be stored in S3
 
-    # Upload the PDF to S3
-    try:
-        s3_client.upload_file(file_name, bucket_name, object_name)
-        print("File uploaded successfully")
-    except NoCredentialsError:
-        print("Credentials not available")
-
-
     # Run textract API
     textract = boto3.client('textract')
 
-    # Process the document
-    response = textract.analyze_document(
-        Document={
-            'S3Object': {
-                'Bucket': bucket_name,
-                'Name': object_name
-            }
-        },
-        FeatureTypes=['FORMS', 'TABLES', 'LAYOUT']  # Specify the features you need
-    )
-    forms_data = get_form_data(response)
-    table_data = get_table_data(response)
+    # Example usage for each image
+    responses = []
+    for i in range(len(images)):
+        image_key = f'{file_name}{i + 1}.png'
+        response = analyze_document(image_key, s3_client, textract, bucket_name, object_name)
+        responses.append(response)
+
+    forms_data = get_form_data(responses)
+    table_data = get_table_data(responses)
     return table_data, forms_data
 
 def get_k1_cover_gpt_output(file_name, table_data, forms_data, client):
@@ -191,7 +202,7 @@ def get_k1_cover_gpt_output(file_name, table_data, forms_data, client):
             'ending':'',
             'year':2020,
             'is_final_k-1':False,
-            'is_amended_k-1':True,   
+            'is_amended_k-1':False,   
         },
         'part_one':{
             'partnerships_ein':'12-3456789',
@@ -301,6 +312,7 @@ def get_k1_cover_gpt_output(file_name, table_data, forms_data, client):
                 },
             ] }
         ],
+        temperature=0,
         max_tokens=2000
     )
     return response.choices[0].message.content
@@ -334,7 +346,7 @@ def gpt_to_json(content):
     else:
         print("No valid JSON object found in the content.")
 
-def get_k1_supplement_gpt_output(file_name, images, client):
+def get_k1_supplement_gpt_output(file_name, images, client, table_data, forms_data):
     # K1 supplemental information prompt generation:
     supplement_output_format = {
         '11':{
@@ -351,12 +363,21 @@ def get_k1_supplement_gpt_output(file_name, images, client):
         }
     }
 
-    supplemental_info_prompt = "Given the following K1 document pages, pull out all data from Line 11a-11i and Line 13w. Make sure to include all subrows for each category. Where relevant, just use the total for the category but do not have the actual key in the key/value pair be 'total', 'passive' or 'non-passive'. Format this data as a JSON output as follow: " + str(supplement_output_format) + ".\n"
+    # supplemental_info_prompt = "Given the following K1 document pages, pull out all data from Line 11a-11i and Line 13w. Make sure to include all subrows in any tables for each category. Where relevant, just use the total for the category (vs. passive / non-passive). Use the included tabular and forms data from the form to validate and every output. Format this data as a JSON output as follow: " + str(supplement_output_format) + ".\n"
+    supplemental_info_prompt = "Given the following K1 document pages, pull out all data from Line 11a-11i and Line 13w. Make sure to include all subrows in any tables for each category. Use the included tabular and forms data from the form to validate and every output. Format this data as a JSON output as follow: " + str(supplement_output_format) + ".\n"
 
     input_content=[
         {
             "type": "text",
             "text": supplemental_info_prompt
+        },
+        {
+            "type": "text",
+            "text": str(table_data)
+        },
+        {
+            "type": "text",
+            "text": str(forms_data)
         },
     ]
 
@@ -375,6 +396,7 @@ def get_k1_supplement_gpt_output(file_name, images, client):
         messages=[
             { "role": "user", "content": input_content }
         ],
+        temperature=0,
         max_tokens=2000
     )
     print(response.choices[0].message.content)
