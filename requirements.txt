@@ -6,3 +6,4 @@ streamlit
 google-cloud-documentai
 pdf2image
 poppler-utils
+pypdf
