@@ -1,0 +1,428 @@
+{
+    "K-1 Headers":{
+      "Beginning":"",
+      "Ending":"",
+      "Calendar Year":2020,
+      "Is Final K-1":false,
+      "Is Amended K-1":false
+    },
+    "Part I (Information About the Partnership)":{
+      "A": {"Partnerships employer identification number":""},
+      "B": {"Partnerships name, address, city, state, and ZIP code":""},
+      "C": {"IRS center where partnership filed return":"e-file"},
+      "D": {"Is a publicly traded partnership (PTP)":false}
+    },
+    "Part II (Information About the Partner)":{
+      "E": {"Partners SSN or TIN":""},
+      "F": {"Name, address, city, state, and ZIP code for partner":""},
+      "G": {
+        "Is General Partner":false,
+        "Is Limited Partner":false
+      },
+      "H1": {
+        "Is Domestic Partner":false,
+        "Is Foreign Partner":false
+      },
+      "H2": {
+        "Is Disregarded Entity":false,
+        "TIN":"",
+        "Name":""
+      },
+      "I2": {"Is a retirement plan":""},
+      "J": {
+          "Partners share of beginning profit":"0%",
+          "Partners share of ending profit":"0%",
+          "Partners share of beginning loss":"0%",
+          "Partners share of ending loss":"0%",
+          "Partners share of beginning capital":"0%",
+          "Partners share of ending capital":"0%",
+          "Is decrease due to sale or exchange of partnership interest":false
+      },
+      "K - Partners share of liabilities": {
+          "Partners share of beginning nonrecourse":"0%",
+          "Partners share of ending nonrecourse":"0%",
+          "Partners share of beginning qualified nonrecourse financing":"0%",
+          "Partners share of ending qualified nonrecourse financing":"0%",
+          "Partners share of beginning recourse":"0%",
+          "Partners share of ending recourse":"0%",
+          "Is item K includes liability amounts from lower-tier partnerships":false
+      },
+      "L - Partners capital account analysis": {
+          "Beginning capital account":"0",
+          "Capital contributed during year":"0",
+          "Current year net income":"0",
+          "Other increase/decrease":"0",
+          "Withdrawals and distributions":"0",
+          "Ending capital account":"0"
+      },
+      "M": {"Did the partner contribute property with a built-in gain":false},
+      "N": {
+          "Partners share of net unrecognized section 704c beginning":"0%",
+          "Partners share of net unrecognized section 704c ending":"0%"
+      }
+    },
+    "1": {
+      "Ordinary business income (loss)":0
+    },
+    "2": {
+      "Net rental real estate income (loss)":0
+    },
+    "3": {
+      "Other net rental income (loss)":0
+    },
+    "4a": {
+      "Guaranteed payments for services":0
+    },
+    "4b": {
+      "Guaranteed payments for capital":0
+    },
+    "4c": {
+      "Total guaranteed payments":0
+    },
+    "5": {
+      "Interest income": {
+        "US Government/treasury":0,
+        "Interest income - portfolio":0,
+        "Bank deposit income":0,
+        "Total":0
+      }
+    },
+    "6a": {
+      "Ordinary dividends":0
+    },
+    "6b": {
+      "Qualified dividends":0
+    },
+    "6c": {
+      "Dividend equivalents":0
+    },
+    "7": {
+      "Royalties":0
+    },
+    "8": {
+      "Net short-term capital gain (loss)":0
+    },
+    "9a": {
+      "Net long-term capital gain (loss)":0
+    },
+    "9b": {
+      "Collectibles (28%) gain (loss)":0
+    },
+    "9c": {
+      "Unrecaptured section 1250 gain":0
+    },
+    "10": {
+      "Net section 1231 gain (loss)":0
+    },
+    "11": {
+      "A - Other portfolio income": {
+        "Sch E other income / (loss)":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Section 988 income":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Section 988 (loss)":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Other interest (Portfolio)":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "US Treasury interest":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Non-Qualified dividends":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Qualified dividends":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Royalties":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Short-term capital gain / (loss)":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Long-term capital gain / (loss)":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Total line 11a":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        }
+      },
+      "B - Involuntary conversions": {
+        "Total line 11b":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        }
+      },
+      "C - Section 1256 gain (loss)": {
+        "Total line 11c":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        }
+      },
+      "E - Cancellation of debt": {
+        "Total line 11e":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        }
+      },
+      "F - Section 743(b) positive adjustments": {
+        "Total line 11f":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        }
+      },
+      "H - Section 951(a) inclusion": {
+        "Total line 11h":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        }
+      },
+      "I - Other income / (loss)": {
+        "Sch E other income/loss":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Net section 1231 gain/loss":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Ordinary gain/loss (form 4797)":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Cancel debt income - 108(i)":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Form 1040, p1 other inc/loss (ordinary)":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Other interest (portfolio)":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "US treasury interest":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Self-charged interest":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Non-qualified dividends":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Qualified dividends":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Royalties":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Short-term capital gain/(loss)":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Long-term capital gain/(loss)":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Long-term capital gain/(loss) - QSBS":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Collectible (28%) L/T G/T":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Total line 11i":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        }
+      }
+    },
+    "12": {
+      "Section 179 deduction":0
+    },
+    "13": {
+      "AE - deductions - portfolio income":0,
+      "A - cash contributions":0,
+      "C - non-cash contributions":0,
+      "H - Investment interest expense":{
+        "Trading activities":0,
+        "Investing activities":0
+      },
+      "I - Deductions - royalty income":0,
+      "J - section 59(e)(2) expenditures":0,
+      "K - excess business interest expense":0,
+      "L - Other portfolio deductions":0,
+      "V - section 743(b) negative adjustments":0,
+      "W - other expenses": {
+        "Other deductions":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Sec 179 Expense":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Depreciation / amortization":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Investment int exp - sch A":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Investment int exp - sch E":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Charitable cont - cash 60%":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Charitable cont - noncash 50%":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "State taxes":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Section 212 - portfolio deductions":{
+            "passive":50,
+            "non-passive":50,
+            "total":100
+        },
+        "Total line 13w":{
+            "passive":450,
+            "non-passive":450,
+            "total":900
+        }
+      }
+    },
+    "14": {
+      "Self-employment earnings (loss)":0
+    },
+    "15": {
+      "Credit":0
+    },
+    "16": {
+      "Is schedule K-3 attached":false
+    },
+    "17": {
+      "Alternative minimum tax (AMT) items": {
+        "A - post-1986 depreciation adjustment":0,
+        "B - adjusted gain or loss":0,
+        "C - Depletion (Other than Oil & Gas)":0,
+        "D - oil, gas, and geothermal-gross income":0,
+        "E - oil, gas, and geothermal-deductions":0,
+        "F - other amt items":0,
+        "Total line 17":0
+      }
+    },
+    "18": {
+      "Tax exempt income and nondeductible expenses": {
+        "A - Tax-exempt interest":0,
+        "B - Tax-exempt income":0,
+        "C - Nondeductible expenses":0,
+        "Total line 18":0
+      }
+    },
+    "19": {
+      "Distributions":0
+    },
+    "20": {
+      "Other information": {
+        "A - Investment income":0,
+        "B - Investment expenses":0,
+        "N - Interest Expense for Corporate Partners":0,
+        "O - §453(I)(3) Information":0,
+        "P - §453A(c) Information":0,
+        "V - Unrelated Business Taxable Income":0,
+        "Y - Net Investment Income":0,
+        "AA - Section 704(c) information":0,
+        "AE - Excess Taxable Income":0,
+        "AF - Excess business interest income":0,
+        "AG - Gross Reciepts for Section 448(c)":0,
+        "AJ - Excess Business Loss Limitation":0,
+        "AW - Reportable Transactions":0,
+        "ZZ - Passive Activity":0
+      }
+    },
+    "21": {
+      "Foreign taxes paid or accrued":0
+    },
+    "22": {
+      "Is more than one activity for at-risk purposes":false
+    },
+    "23": {
+      "Is more than one activity for passive activity purposes":false
+    },
+    "199A": [
+      ["Trade or Business Name","EIN","RPE Aggregation (Attachment if yes)","SSTB/Non-SSTB", "Line 20Z - Ordinary Income","Line 20Z - Rental Income","Line 20Z - Royalty Income","Line 20Z - Section 1231","Line 20Z - Other Income","Line 20Z - Section 179 Deduction","Line 20Z - Charitable Contributions","Line 20Z - Other Deductions","Line 20Z - Section 199A W-2 Wages","Line 20Z - Section 199A Unadjusted Basis","Line 20Z - Section 199A Dividends","Line 20Z - PTP Income"],
+      ["", "00-0000000", "X", "Non-SSTB", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    ],
+    "163(j) Information":[
+      ["Trade or Business Name", "Line 13K - Business Interest Expense", "Line 20AE - Excess Taxable Income", "Line 20AF - Excess business Interest Income", "Adjustable Taxable Income", "Gross Receipts", "Trade or Business Interest Expense"],
+      ["", 0, 0, 0, 0, 0, 0]
+    ]
+  }

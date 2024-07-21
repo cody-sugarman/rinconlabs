@@ -10,9 +10,10 @@ from openai import OpenAI
 from pypdf import PdfReader
 import csv
 import io
+import json
 
 
-from utils import pdf_to_pngs, get_textract_tables_and_forms, get_k1_cover_gpt_output, gpt_to_json, get_k1_supplement_gpt_output
+from utils import pdf_to_pngs, get_textract_tables_and_forms, get_k1_gpt_output
 
 LOGGER = get_logger(__name__)
 openai_api_key = st.secrets["general"]["openai_api_key"]
@@ -28,16 +29,6 @@ region_name = 'us-east-1'
 os.environ['AWS_ACCESS_KEY_ID'] = aws_access_key_id
 os.environ['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
 os.environ['AWS_DEFAULT_REGION'] = region_name
-
-def extract_leaf_nodes(data, parent_key=''):
-    items = []
-    for k, v in data.items():
-        new_key = k
-        if isinstance(v, dict):
-            items.extend(extract_leaf_nodes(v, new_key))
-        else:
-            items.append({'Field': new_key, 'Value': v})
-    return items
 
 def flatten_json(y, parent_key=''):
     rows = []
@@ -64,6 +55,17 @@ def run():
 
     st.write("# Welcome to RinconLabs' K-1 Analyzer Demo! 👋")
 
+    # Opening JSON file
+    k1_json_file = open('k1_json_data.json')
+    k1_json_data_all = json.load(k1_json_file)
+
+    # Define out to split up multiple calls to GPT for data extraction
+    k1_json_keys_groups = [
+        ['K-1 Headers', 'Part I (Information About the Partnership)', 'Part II (Information About the Partner)'],
+        ['1', '2', '3', '4a', '4b', '4c', '5', '6a', '6b', '6c', '7', '8', '9a', '9b', '9c', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'],
+        ['199A', '163(j) Information']
+    ]
+
     uploaded_file = st.file_uploader("Upload any K-1 cover page here:")
 
     client = OpenAI(
@@ -81,7 +83,6 @@ def run():
         file_name, images = pdf_to_pngs(path)
 
         # Convert PDF to string (including embeddings)
-
         # Initialize PdfReader
         reader = PdfReader(path)
         number_of_pages = len(reader.pages)
@@ -97,36 +98,32 @@ def run():
         
     # Button to extract data
     if uploaded_file and st.button("Extract Data"):
-        tables, forms = get_textract_tables_and_forms(file_name, images)
-        k1_cover_gpt_output = get_k1_cover_gpt_output(file_name+'1.png', tables, forms, client)
-        k1_cover_gpt_output_json = gpt_to_json(k1_cover_gpt_output)
-        k1_supplement_gpt_output = get_k1_supplement_gpt_output(file_name, images, client, tables, forms, all_pdf_text)
-        k1_supplement_gpt_output_json = gpt_to_json(k1_supplement_gpt_output)        
-        k1_cover_gpt_output_json.update(k1_supplement_gpt_output_json)
+        table_data, forms_data = get_textract_tables_and_forms(file_name, images)
+        k1_gpt_output_json = get_k1_gpt_output(client, k1_json_keys_groups, k1_json_data_all, file_name, all_pdf_text, images, table_data, forms_data)
 
-        st.json(k1_cover_gpt_output_json, expanded=True)
-        cover_leaf_nodes = extract_leaf_nodes(k1_cover_gpt_output_json)
-        cover_leaf_nodes_df = pd.DataFrame(cover_leaf_nodes)
-        st.session_state.cover_document_df = cover_leaf_nodes_df
+        st.json(k1_gpt_output_json, expanded=True)
+        st.session_state.k1_gpt_output_json_session = k1_gpt_output_json
         
-
     # Display and allow editing of the dataframe if it's in the session state
-    if 'cover_document_df' in st.session_state and not st.session_state.cover_document_df.empty:
+    if 'k1_gpt_output_json_session' in st.session_state:
         # Select tax software to integrate with
         option = st.selectbox(
             'Please select your tax software (for export formatting purposes)',
             ('UltraTax CS', 'GoSystem Tax RS', 'CCH Axcess Tax', 'Lacerte')
         )
 
+        k1_gpt_output_json = st.session_state.k1_gpt_output_json_session
+        st.json(k1_gpt_output_json, expanded=True)
+
         # Flatten and prepare data
-        flattened_data = flatten_json(k1_cover_gpt_output_json)
+        flattened_data = flatten_json(k1_gpt_output_json)
 
         # Process flattened data
         rows = []
         header_set = set()
         for path, value in flattened_data:
             keys = path.split('.')
-            if keys[0] == "199A" or keys[0].startswith("163(j) Information"):
+            if keys[0] == "199A" or keys[0] == "163(j) Information":
                 continue  # Skip 199A and 163(j) Information sections in the initial section
             if isinstance(value, dict) and all(k in value for k in ['passive', 'non-passive', 'total']):
                 section, subsection = keys[0], keys[1]
@@ -142,34 +139,24 @@ def run():
 
         # Process 199A section separately
         section_199A_rows = []
-        if "199A" in k1_supplement_gpt_output_json:
-            for entry in k1_supplement_gpt_output_json["199A"]:
-                row = []
-                row.append(entry.get("business_name", ""))
-                row.append(entry.get("EIN", ""))
-                for key, value in entry.items():
-                    if key not in ["business_name", "EIN"]:
-                        header_set.add(key)
-                        row.append(value)
-                section_199A_rows.append(row)
-
-        # Add headers for the 199A fields
-        header_list = ['Section', 'Subsection', 'Detail', 'Passive', 'Non-passive', 'Total']
-        header_199A_list = ['Trade or Business Name', 'EIN'] + list(header_set)
+        header_199A_list = []
+        if "199A" in k1_gpt_output_json:
+            headers_199A = k1_gpt_output_json["199A"][0]
+            header_199A_list = headers_199A
+            for entry in k1_gpt_output_json["199A"][1:]:
+                section_199A_rows.append(entry)
 
         # Process 163(j) section separately
         section_163j_rows = []
-        header_163j_set = set()
-        if "163(j) Information" in k1_supplement_gpt_output_json:
-            for entry in k1_supplement_gpt_output_json["163(j) Information"]:
-                row = []
-                for key, value in entry.items():
-                    header_163j_set.add(key)
-                    row.append(value)
-                section_163j_rows.append(row)
+        header_163j_list = []
+        if "163(j) Information" in k1_gpt_output_json:
+            headers_163j = k1_gpt_output_json["163(j) Information"][0]
+            header_163j_list = headers_163j
+            for entry in k1_gpt_output_json["163(j) Information"][1:]:
+                section_163j_rows.append(entry)
 
-        # Add headers for the 163(j) fields
-        header_163j_list = list(header_163j_set)
+        # Add headers for the initial fields
+        header_list = ['Section', 'Subsection', 'Detail', 'Passive', 'Non-passive', 'Total']
 
         # Use StringIO to handle CSV content
         output = io.StringIO()
