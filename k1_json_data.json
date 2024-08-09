@@ -28,6 +28,7 @@
         "TIN":"",
         "Name":""
       },
+      "I1": {"What type of entity is this partner":""},
       "I2": {"Is a retirement plan":""},
       "J": {
           "Partners share of beginning profit":"0%",

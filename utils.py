@@ -202,8 +202,11 @@ def get_textract_tables_and_forms(file_name, images):
     # Run textract API
     textract = boto3.client('textract')
     image_keys = [f'{file_name}{i + 1}.png' for i in range(len(images))]
+    print("image_keys: " + str(image_keys))
+
     responses = analyze_documents_in_parallel(image_keys, s3_client, textract, bucket_name, object_name)
 
+    print("responses: " + str(responses))
     # Post-processing for Textract data
     forms_data = get_form_data(responses)
     table_data = get_table_data(responses)
