@@ -66,7 +66,7 @@ def run():
         ['199A', '163(j) Information']
     ]
 
-    uploaded_file = st.file_uploader("Upload any K-1 cover page here:")
+    uploaded_file = st.file_uploader("Upload upto 100x K-1s here:")
 
     client = OpenAI(
         organization=openai_organization,
