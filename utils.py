@@ -196,7 +196,7 @@ def analyze_documents_in_parallel(image_keys, s3_client, textract, bucket_name, 
 def get_textract_tables_and_forms(file_name, images):
     # Upload K1 cover to s3 bucket for Textract usage
     s3_client = boto3.client('s3', region_name='us-east-1')  # Ensure the region is correct
-    bucket_name = 'rincon-labs-s3-bucket'  # Updated bucket name
+    bucket_name = 'rincon-labs'  # Updated bucket name
     object_name = file_name  # The name under which the PDF will be stored in S3
 
     # Run textract API

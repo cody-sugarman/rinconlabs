@@ -53,7 +53,7 @@ def run():
         page_icon="🌊",
     )
 
-    st.write("# Welcome to RinconLabs' K-1 Scanner Demo! 👋")
+    st.write("# Welcome to RinconLabs' F&H K-1 Scanner! 👋")
 
     # Opening JSON file
     k1_json_file = open('k1_json_data.json')
