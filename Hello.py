@@ -29,8 +29,6 @@ openai_project = st.secrets["general"]["openai_project"]
 # Enter your credentials here
 aws_access_key_id = st.secrets["general"]["aws_access_key_id"]
 aws_secret_access_key = st.secrets["general"]["aws_secret_access_key"]
-print(aws_access_key_id)
-print(aws_secret_access_key)
 region_name = 'us-east-1'
 
 # Setting environment variables
@@ -519,6 +517,8 @@ def run():
         
     # Button to extract data
     if uploaded_files and st.button("Extract Data"):
+        print(aws_access_key_id)
+        print(aws_secret_access_key)
         output_dir = '/'
         bucket_name = 'rincon-labs'
         all_results = process_all_pdfs_concurrently(file_paths, output_dir, bucket_name, k1_json_keys_groups)
