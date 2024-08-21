@@ -29,6 +29,8 @@ openai_project = st.secrets["general"]["openai_project"]
 # Enter your credentials here
 aws_access_key_id = st.secrets["general"]["aws_access_key_id"]
 aws_secret_access_key = st.secrets["general"]["aws_secret_access_key"]
+print(aws_access_key_id)
+printaws_secret_access_key)
 region_name = 'us-east-1'
 
 # Setting environment variables
