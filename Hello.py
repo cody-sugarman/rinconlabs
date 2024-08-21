@@ -52,7 +52,7 @@ client = OpenAI(
 )
 
 
-def process_json_array(all_results):
+def process_json_array(all_results, file_paths):
     # Use the first JSON object to determine the row headers
     first_json = all_results[0]
     flattened_headers = flatten_json(first_json)
@@ -61,7 +61,7 @@ def process_json_array(all_results):
     header_list = ['Section', 'Subsection', 'Detail']
     
     for i in range(len(all_results)):
-        header_list.append(f'{i}')
+        header_list.append(f'{os.path.basename(file_paths[i])}')
 
     # Initialize rows dictionary to store data for each key
     rows_dict = OrderedDict()
@@ -521,7 +521,7 @@ def run():
         bucket_name = 'rincon-labs'
         all_results = process_all_pdfs_concurrently(file_paths, output_dir, bucket_name, k1_json_keys_groups)
         st.session_state.k1_gpt_output_json_session = all_results
-        output_file = process_json_array(all_results)
+        output_file = process_json_array(all_results, file_paths)
 
         # In your Streamlit app, offer the file for download
         with open(output_file, 'rb') as f:
