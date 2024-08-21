@@ -517,8 +517,6 @@ def run():
         
     # Button to extract data
     if uploaded_files and st.button("Extract Data"):
-        print(aws_access_key_id)
-        print(aws_secret_access_key)
         output_dir = '/'
         bucket_name = 'rincon-labs'
         all_results = process_all_pdfs_concurrently(file_paths, output_dir, bucket_name, k1_json_keys_groups)
