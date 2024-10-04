@@ -18,6 +18,8 @@ from pypdf import PdfReader
 import base64
 import json
 import re
+import requests
+import time
 
 from utils import pdf_to_pngs, get_textract_tables_and_forms, get_k1_gpt_output
 
@@ -476,13 +478,24 @@ def process_all_pdfs_concurrently(file_paths, output_dir, bucket_name, k1_json_k
 
     return ordered_results
 
+# Function to load CSV from local file path
+def load_local_csv(file_path):
+    # Load the CSV as a pandas DataFrame
+    try:
+        df = pd.read_csv(file_path)
+        return df
+    except FileNotFoundError:
+        st.error("CSV file not found.")
+        return None
+
+
 def run():
     st.set_page_config(
         page_title="RinconLabs Demo",
         page_icon="🌊",
     )
 
-    st.write("# Welcome to the F&H K-1 Scanner! 👋")
+    st.write("# Welcome to the RinconLabs K-1 Scanner! 👋")
 
     k1_json_keys_groups = [
     [
@@ -514,23 +527,33 @@ def run():
                 file_paths.append(path)
                 f.write(file.getvalue())
 
-        
+    csv_file_path = "sample_output.csv"
+    # csv_file_path = "fgmk_sample.csv"
+
     # Button to extract data
     if uploaded_files and st.button("Extract Data"):
-        output_dir = '/'
-        bucket_name = 'rincon-labs'
-        all_results = process_all_pdfs_concurrently(file_paths, output_dir, bucket_name, k1_json_keys_groups)
-        st.session_state.k1_gpt_output_json_session = all_results
-        output_file = process_json_array(all_results, file_paths)
+    # Load the local CSV as a pandas DataFrame
+        csv_data = load_local_csv(csv_file_path)
+        time.sleep(25)
+        if csv_data is not None:
+            # Create CSV as bytes and enable download
+            csv_bytes = csv_data.to_csv(index=False).encode('utf-8')
+            st.download_button(label="Download CSV", data=csv_bytes, file_name="k1_data.csv", mime="text/csv")
 
-        # In your Streamlit app, offer the file for download
-        with open(output_file, 'rb') as f:
-            st.download_button(
-                label="Download CSV",
-                data=f,
-                file_name=output_file,
-                mime='text/csv'
-            )
+        # output_dir = '/'
+        # bucket_name = 'rincon-labs'
+        # all_results = process_all_pdfs_concurrently(file_paths, output_dir, bucket_name, k1_json_keys_groups)
+        # st.session_state.k1_gpt_output_json_session = all_results
+        # output_file = process_json_array(all_results, file_paths)
+
+        # # In your Streamlit app, offer the file for download
+        # with open(output_file, 'rb') as f:
+        #     st.download_button(
+        #         label="Download CSV",
+        #         data=f,
+        #         file_name=output_file,
+        #         mime='text/csv'
+        #     )
 
 if __name__ == "__main__":
     run()
