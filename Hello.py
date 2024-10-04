@@ -360,7 +360,7 @@ def extract_json_data_batch(k1_json_keys, k1_json_data_all, file_name, all_pdf_t
         # response_format = { "type": "json_schema", "json_schema": k1_json_data_all , "strict": true }
     )
     response_content = response.choices[0].message.content
-    print(response_content)
+    # print(response_content)
     parsed_json = process_to_json(response_content)
     return parsed_json
 
@@ -399,7 +399,7 @@ def process_pdf(path, output_dir, bucket_name, k1_json_keys_groups):
             base_file_name = file_name.replace('.pdf', '')
             image_keys = []
             for i, image in enumerate(images):
-                print('img temp name 2: ' + base_file_name)
+                # print('img temp name 2: ' + base_file_name)
                 output_path = os.path.join(output_dir, f'{base_file_name}_{i + 1}.png')
                 image.save(output_path, 'PNG')
                 image_keys.append(output_path)
@@ -412,13 +412,13 @@ def process_pdf(path, output_dir, bucket_name, k1_json_keys_groups):
 
         # Analyze documents in parallel and maintain order
         responses = analyze_documents_in_parallel(image_keys, bucket_name, object_name)
-        print(f"Responses for {file_name}: {responses}")  # Debug: Check the content of responses
+        # print(f"Responses for {file_name}: {responses}")  # Debug: Check the content of responses
 
         forms_data = get_form_data(responses)
-        print(f"Forms data for {file_name}: {forms_data}")  # Debug: Check the content of forms_data
+        # print(f"Forms data for {file_name}: {forms_data}")  # Debug: Check the content of forms_data
 
         table_data = get_table_data(responses)
-        print(f"Table data for {file_name}: {table_data}")  # Debug: Check the content of table_data
+        # print(f"Table data for {file_name}: {table_data}")  # Debug: Check the content of table_data
 
         # Main function to execute API calls in parallel and combine results
         combined_json = OrderedDict()  # Ensure this is initialized per file
